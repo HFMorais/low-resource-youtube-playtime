@@ -2,7 +2,7 @@
 
 # Check if Script is Run as Root
 if [[ $EUID -ne 0 ]]; then
-  echo "Root user is required, please run sudo ./install-prerequisite.sh" 2>&1
+  echo "Root user is required, please run sudo ./install-prerequisites.sh" 2>&1
   exit 1
 fi
 
@@ -38,3 +38,5 @@ echo "[tempfix]" >> /home/$username/.config/mpv/mpv.conf
 echo "ytdl-format=best[height=720]" >> /home/$username/.config/mpv/mpv.conf
 echo "[shorts]" >> /home/$username/.config/mpv/mpv.conf
 echo "ytdl-format=best" >> /home/$username/.config/mpv/mpv.conf
+
+chown $username:$username /home/$username/.config/mpv/mpv.conf
