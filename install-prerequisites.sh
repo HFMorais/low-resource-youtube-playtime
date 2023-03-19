@@ -10,7 +10,7 @@ username=$(id -u -n 1000)
 home_dir=$(pwd)
 
 apt-get update
-apt-get install python3 python3-pip mpv xclip -y
+apt-get install python3 python3-pip mpv xclip ffmpeg -y
 
 # I know I know... a root instalation of a pip package
 python3 -m pip install -U yt-dlp
