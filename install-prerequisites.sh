@@ -15,6 +15,9 @@ apt-get install python3 python3-pip mpv xclip ffmpeg -y
 # I know I know... a root instalation of a pip package
 python3 -m pip install -U yt-dlp
 
+pip install feedparser
+pip install tabulate
+
 cd "$home_dir" || exit
 mkdir -p "/home/$username/.config/mpv"
 # Just to be sure the file exists
