@@ -10,3 +10,8 @@ What do you need for this beauty?
 - Python 3
 - ffmpeg
 - Configure mpv to use yt-dlp as default for youtube videos. If your not sure how to do this, please use the install prerequisite script (debian only (for now))
+
+For the "scrapper" you may need something extra (python libs, both added in the prerequisite script)
+
+- feedparser
+- tabulate

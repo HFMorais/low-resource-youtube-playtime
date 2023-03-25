@@ -31,6 +31,7 @@ echo "ytdl-format=bestvideo[height<=?1080]+bestaudio/best" >> /home/$username/.c
 echo "" >> /home/$username/.config/mpv/mpv.conf
 echo "[720p]" >> /home/$username/.config/mpv/mpv.conf
 echo "ytdl-format=bestvideo[height<=?720]+bestaudio/best" >> /home/$username/.config/mpv/mpv.conf
+echo "" >> /home/$username/.config/mpv/mpv.conf
 echo "[480p]" >> /home/$username/.config/mpv/mpv.conf
 echo "ytdl-format=bestvideo[height<=?480]+bestaudio/best" >> /home/$username/.config/mpv/mpv.conf
 echo "" >> /home/$username/.config/mpv/mpv.conf
@@ -39,6 +40,7 @@ echo "ytdl-format=bestvideo[height<=?360]+bestaudio/best" >> /home/$username/.co
 echo "" >> /home/$username/.config/mpv/mpv.conf
 echo "[tempfix]" >> /home/$username/.config/mpv/mpv.conf
 echo "ytdl-format=best[height=720]" >> /home/$username/.config/mpv/mpv.conf
+echo "" >> /home/$username/.config/mpv/mpv.conf
 echo "[shorts]" >> /home/$username/.config/mpv/mpv.conf
 echo "ytdl-format=best" >> /home/$username/.config/mpv/mpv.conf
 
