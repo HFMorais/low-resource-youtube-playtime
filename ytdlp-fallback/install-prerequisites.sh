@@ -12,9 +12,6 @@ home_dir=$(pwd)
 apt update
 apt install python3 python3-pip mpv xclip ffmpeg -y
 
-# if you want to use the yt-dlp fallback version, this is not necessary
-apt install streamlink -y
-
 # I know I know... a root instalation of a pip package
 python3 -m pip install -U yt-dlp
 
@@ -42,7 +39,7 @@ echo "[360p]" >> /home/$username/.config/mpv/mpv.conf
 echo "ytdl-format=bestvideo[height<=?360]+bestaudio/best" >> /home/$username/.config/mpv/mpv.conf
 echo "" >> /home/$username/.config/mpv/mpv.conf
 echo "[tempfix]" >> /home/$username/.config/mpv/mpv.conf
-echo "ytdl-format=22" >> /home/$username/.config/mpv/mpv.conf
+echo "ytdl-format=best[height=720]" >> /home/$username/.config/mpv/mpv.conf
 echo "" >> /home/$username/.config/mpv/mpv.conf
 echo "[shorts]" >> /home/$username/.config/mpv/mpv.conf
 echo "ytdl-format=best" >> /home/$username/.config/mpv/mpv.conf

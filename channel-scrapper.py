@@ -29,6 +29,12 @@ def fetch_channel_property(channel_source, split_value):
 
     return second_pass
 
+def fetch_channel_id(channel_source):
+    first_pass = channel_source.split("?channel_id=")[1]
+    second_pass = first_pass.split('"')[0]
+
+    return second_pass
+
 # Parse the RSS feed of a channel
 def parse_rss_feed(channel_id):
     rssFeedUrl = "https://www.youtube.com/feeds/videos.xml?channel_id="+channel_id
@@ -87,7 +93,8 @@ if __name__ == "__main__":
         #channel_source = fetch_channel_source(channel.strip())
         channel_source = special_fetch_channel_source(channel.strip())
 
-        channel_id = fetch_channel_property(channel_source, '<meta itemprop="channelId" content="')
+        #channel_id = fetch_channel_property(channel_source, '<meta itemprop="channelId" content="')
+        channel_id = fetch_channel_id(channel_source)
         
         # Add channel name to cache for later use
         if channel_id not in CHANNEL_NAME_CACHE:
