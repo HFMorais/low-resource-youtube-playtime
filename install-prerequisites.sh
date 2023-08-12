@@ -10,41 +10,29 @@ username=$(id -u -n 1000)
 home_dir=$(pwd)
 
 apt update
-apt install python3 python3-pip mpv xclip ffmpeg -y
+apt install python3 curl python3-pip mpv xclip ffmpeg -y
 
-# if you want to use the yt-dlp fallback version, this is not necessary
+# if you want to use the yt-dlp for twitch use the fallback branch
 apt install streamlink -y
 
-# I know I know... a root instalation of a pip package
-python3 -m pip install -U yt-dlp
+# Since youtube is always trying to screw people over, let's fetch a newer bin version from the source
+wget -O /usr/local/bin/yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp
+chmod +x /usr/local/bin/yt-dlp
 
-pip install feedparser
-pip install tabulate
+# Install python required libs
+apt install python3-tabulate python3-feedparser
 
 cd "$home_dir" || exit
-mkdir -p "/home/$username/.config/mpv"
-# Just to be sure the file exists
-touch /home/$username/.config/mpv/mpv.conf
 
-# Add mpv configurations
-echo "script-opts=ytdl_hook-ytdl_path=/usr/local/bin/yt-dlp" >> /home/$username/.config/mpv/mpv.conf
-echo "" >> /home/$username/.config/mpv/mpv.conf
-echo "[1080p]" >> /home/$username/.config/mpv/mpv.conf
-echo "ytdl-format=bestvideo[height<=?1080]+bestaudio/best" >> /home/$username/.config/mpv/mpv.conf
-echo "" >> /home/$username/.config/mpv/mpv.conf
-echo "[720p]" >> /home/$username/.config/mpv/mpv.conf
-echo "ytdl-format=bestvideo[height<=?720]+bestaudio/best" >> /home/$username/.config/mpv/mpv.conf
-echo "" >> /home/$username/.config/mpv/mpv.conf
-echo "[480p]" >> /home/$username/.config/mpv/mpv.conf
-echo "ytdl-format=bestvideo[height<=?480]+bestaudio/best" >> /home/$username/.config/mpv/mpv.conf
-echo "" >> /home/$username/.config/mpv/mpv.conf
-echo "[360p]" >> /home/$username/.config/mpv/mpv.conf
-echo "ytdl-format=bestvideo[height<=?360]+bestaudio/best" >> /home/$username/.config/mpv/mpv.conf
-echo "" >> /home/$username/.config/mpv/mpv.conf
-echo "[tempfix]" >> /home/$username/.config/mpv/mpv.conf
-echo "ytdl-format=22" >> /home/$username/.config/mpv/mpv.conf
-echo "" >> /home/$username/.config/mpv/mpv.conf
-echo "[shorts]" >> /home/$username/.config/mpv/mpv.conf
-echo "ytdl-format=best" >> /home/$username/.config/mpv/mpv.conf
+# Make sure the dir exists
+mkdir -p "/home/$username/.config/mpv"
+
+# Create a backup of the mpv configuraton file if it exists
+if [ -e /home/$username/.config/mpv/mpv.conf ]; then
+	mv /home/$username/.config/mpv/mpv.conf /home/$username/.config/mpv/mpv.conf.bak 
+fi
+
+# Copy the config file to the destination folder
+cp dotfiles/mpv.conf "/home/$username/.config/mpv/"
 
 chown $username:$username /home/$username/.config/mpv/mpv.conf

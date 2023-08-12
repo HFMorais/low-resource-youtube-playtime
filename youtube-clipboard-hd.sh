@@ -16,9 +16,9 @@ then
     elif [[ "$video_url" == *"twitch.tv"* ]]; then
         # To simplify this process, I just gave up and started using streamlink since it has better results in terms of buffering.
         # Will keep the yt-dlp only aproach for fallback
-        streamlink --twitch-disable-ads --player mpv --default-stream 720p,1080p,best $video_url
+        streamlink --twitch-disable-ads --player mpv --default-stream 1080p,best $video_url
     else
-        mpv --profile=default $video_url
+        mpv --profile=1080p $video_url
     fi
 else
     exit 1
