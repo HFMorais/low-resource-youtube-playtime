@@ -10,10 +10,7 @@ username=$(id -u -n 1000)
 home_dir=$(pwd)
 
 apt update
-apt install python3 curl python3-pip mpv xclip ffmpeg -y
-
-# if you want to use the yt-dlp for twitch use the fallback branch
-apt install streamlink -y
+apt install python3 curl mpv xclip ffmpeg -y
 
 # Since youtube is always trying to screw people over, let's fetch a newer bin version from the source
 wget -O /usr/local/bin/yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp

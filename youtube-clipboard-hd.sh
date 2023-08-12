@@ -14,9 +14,14 @@ then
     if [[ "$video_url" == *"shorts"* ]]; then
         mpv --profile=shorts $video_url
     elif [[ "$video_url" == *"twitch.tv"* ]]; then
-        # To simplify this process, I just gave up and started using streamlink since it has better results in terms of buffering.
-        # Will keep the yt-dlp only aproach for fallback
-        streamlink --twitch-disable-ads --player mpv --default-stream 1080p,best $video_url
+	# Get the first instance of 720p quality video format with audio
+        video_format=$( yt-dlp --list-formats $video_url | grep -v "audio only" | grep -v "video only" | grep "1080" | head -n1 | awk '{print $1;}' )
+
+        # If no 1080p format was found revert to source
+        [[ -z "$video_format" ]] && video_format=$( yt-dlp --list-formats $video_url | grep -v "audio only" | grep -v "video only" | grep "source" | head -n1 | awk '{print $1;}' )
+
+        # Pipe the yt-dlp stream to mpv instead of using mpv configuration
+        yt-dlp -f $video_format -q -o - $video_url | mpv -
     else
         mpv --profile=1080p $video_url
     fi
