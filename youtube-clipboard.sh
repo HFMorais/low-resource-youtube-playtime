@@ -18,7 +18,7 @@ then
         # Will keep the yt-dlp only aproach for fallback
         streamlink --twitch-disable-ads --player mpv --default-stream 720p,1080p,best $video_url
     else
-        mpv --profile=tempfix $video_url
+        mpv --profile=default $video_url
     fi
 else
     exit 1
