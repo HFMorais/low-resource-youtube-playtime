@@ -20,8 +20,7 @@ wget -O /usr/local/bin/yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/d
 chmod +x /usr/local/bin/yt-dlp
 
 # Install python required libs
-pip install feedparser
-pip install tabulate
+apt install python3-tabulate python3-feedparser
 
 cd "$home_dir" || exit
 
