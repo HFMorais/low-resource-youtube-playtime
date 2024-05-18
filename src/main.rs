@@ -18,13 +18,6 @@ fn main() {
         },
     };
 
-    // Now you can use `clipboard_contents` as a variable in your main function
-    // println!("Clipboard contents: {}", clipboard_contents);
-
-    // Example usage: print the length of the clipboard contents
-    // let length = clipboard_contents.len();
-    // println!("Length of clipboard contents: {}", length);
-
     let regex_expression =  r"(https?|file)://[-[:alnum:]\+&@#/%?=~_|!:,.;]*[-[:alnum:]\+&@#/%=~_|]";
     let re = Regex::new(regex_expression).unwrap();
 
@@ -73,44 +66,34 @@ fn main() {
         return;
     }
 
-    /*
-     * So at this point, we have a list of good video formats, now lets try to select by preference:
-     * 720p first, 1080p next, and if it fails, fetch the last one, since it will be the "best one".
-     */
+    let stream_id: String = fetch_available_stream_id(&good_options);
+    let format_parameter: String = format!("{}{}", "--ytdl-format=", stream_id);
 
-    // let result = find_stream_id_by_quality(good_options, "720");
-    // match result {
-    //     Some(x) => println!("yay? {x}"),
-    //     None => println!("nay")
-    // }
-
-
-    if let Some(stream_id) = find_stream_id_by_quality(good_options, "720") {
-        print!("Found stream: {}", stream_id);
-    }
-
-
-
-    /*
-    if clipboard_contents.contains("shorts") {
-
-    } else if clipboard_contents.contains("twitch.tv") {
-
-    } else {
-        
-    }
-    */ 
-
-    // yt-dlp -f <format_id> <url>
-    // https://www.youtube.com/watch?v=h5dsmj8LPNk
-    // mpv --ytdl-format=300 'https://www.youtube.com/watch?v=Bbrm1ldCBKY'
-    // mpv --ytdl-format=720p 'https://www.twitch.tv/laylacodesit'
+    Command::new("mpv")
+        .args(&[format_parameter, clipboard_contents])
+        .output()
+        .expect("Failed to execute command");
 }
 
-fn find_stream_id_by_quality(available_options: Vec<&str>, quality: &str) -> Option<String> {
+fn fetch_available_stream_id(available_options: &Vec<&str>) -> String {
+    if let Some(stream_id) = find_stream_id_by_quality(&available_options, "720") {
+        return stream_id;
+    }
+    if let Some(stream_id) = find_stream_id_by_quality(&available_options, "1080") {
+        return stream_id;
+    }
+
+    let last_item = &available_options.last().unwrap();
+    return last_item.split_whitespace().next().unwrap().to_string();
+}
+
+
+fn find_stream_id_by_quality(available_options: &Vec<&str>, quality: &str) -> Option<String> {
     for option in available_options {
         if option.contains(quality) {
-            return Some(option.to_string());
+            if let Some(stream_id) = option.split_whitespace().next() {
+                return Some(stream_id.to_string());
+            }
         }
     }
     None
