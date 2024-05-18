@@ -6,9 +6,6 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
-username=$(id -u -n 1000)
-home_dir=$(pwd)
-
 # Function to install prerequisites on Debian-based systems
 install_rust_debian() {
     sudo apt update
@@ -56,5 +53,8 @@ else
     echo "Unsupported Linux distribution."
     exit 1
 fi
+
+curl -o /usr/local/bin https://github.com/HFMorais/low-resource-youtube-playtime/releases/download/v0.9-beta/lryp
+chmod +x /usr/local/bin/lryp
 
 echo "Installation completed successfully."
