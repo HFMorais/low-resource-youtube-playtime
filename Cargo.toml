@@ -1,0 +1,8 @@
+[package]
+name = "low-resource-youtube-playtime"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clipboard = "=0.5.0"
+regex = "=1.10.4"
