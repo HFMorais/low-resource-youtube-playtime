@@ -24,12 +24,6 @@ install_rust_opensuse() {
     sudo zypper install -y ffmpeg mpv yt-dlp
 }
 
-# Check if Script is Run as Root
-if [ $EUID -ne 0 ]; then
-  echo "Root user is required, please run sudo ./install-prerequisites.sh" 2>&1
-  exit 1
-fi
-
 # Detect the distribution and install Rust
 if [ -f /etc/debian_version ]; then
     echo "Detected Debian-based system."
@@ -65,12 +59,14 @@ home_dir=$(pwd)
 # Make sure the dir and file exists
 mkdir -p "/home/$username/.config/mpv"
 touch /home/$username/.config/mpv/mpv.conf
+chown $username:$username /home/$username/.config/mpv
+chown $username:$username /home/$username/.config/mpv/*
 
 # Create a backup of the mpv configuraton file if it exists
 if [ -e /home/$username/.config/mpv/mpv.conf ]; then
 	mv /home/$username/.config/mpv/mpv.conf /home/$username/.config/mpv/mpv.conf.bak 
 fi
 
-echo "$(which yt-dlp)" >> /home/$username/.config/mpv/mpv.conf
+echo "script-opts=ytdl_hook-ytdl_path=$(which yt-dlp)" >> /home/$username/.config/mpv/mpv.conf
 
 echo "Installation completed successfully."
