@@ -54,7 +54,23 @@ else
     exit 1
 fi
 
+# Download binary file and add it to bin folder
 curl -o /usr/local/bin https://github.com/HFMorais/low-resource-youtube-playtime/releases/download/v0.9-beta/lryp
 chmod +x /usr/local/bin/lryp
+
+# Add mpv configuration
+username=$(id -u -n 1000)
+home_dir=$(pwd)
+
+# Make sure the dir and file exists
+mkdir -p "/home/$username/.config/mpv"
+touch /home/$username/.config/mpv/mpv.conf
+
+# Create a backup of the mpv configuraton file if it exists
+if [ -e /home/$username/.config/mpv/mpv.conf ]; then
+	mv /home/$username/.config/mpv/mpv.conf /home/$username/.config/mpv/mpv.conf.bak 
+fi
+
+echo "$(which yt-dlp)" >> /home/$username/.config/mpv/mpv.conf
 
 echo "Installation completed successfully."
