@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# Check if Script is Run as Root
-if [[ $EUID -ne 0 ]]; then
-  echo "Root user is required, please run sudo ./install-prerequisites.sh" 2>&1
-  exit 1
-fi
-
 # Function to install prerequisites on Debian-based systems
 install_rust_debian() {
     sudo apt update
@@ -29,6 +23,12 @@ install_rust_opensuse() {
     sudo zypper refresh
     sudo zypper install -y ffmpeg mpv yt-dlp
 }
+
+# Check if Script is Run as Root
+if [[ $EUID -ne 0 ]]; then
+  echo "Root user is required, please run sudo ./install-prerequisites.sh" 2>&1
+  exit 1
+fi
 
 # Detect the distribution and install Rust
 if [ -f /etc/debian_version ]; then
@@ -55,7 +55,7 @@ else
 fi
 
 # Download binary file and add it to bin folder
-curl -o /usr/local/bin https://github.com/HFMorais/low-resource-youtube-playtime/releases/download/v0.9-beta/lryp
+curl -o /usr/local/bin/lryp https://github.com/HFMorais/low-resource-youtube-playtime/releases/download/v0.9-beta/lryp
 chmod +x /usr/local/bin/lryp
 
 # Add mpv configuration
