@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Function to install prerequisites on Debian-based systems
 install_rust_debian() {
@@ -25,7 +25,7 @@ install_rust_opensuse() {
 }
 
 # Check if Script is Run as Root
-if [[ $EUID -ne 0 ]]; then
+if [ $EUID -ne 0 ]; then
   echo "Root user is required, please run sudo ./install-prerequisites.sh" 2>&1
   exit 1
 fi
