@@ -4,37 +4,41 @@ use clipboard::ClipboardContext;
 use clipboard::ClipboardProvider;
 use std::process::Command;
 use regex::Regex;
+use std::env;
 
 fn main() {
-    // Create a new clipboard context
-    let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
 
-    // Get the text from the clipboard
-    let clipboard_contents: String = match ctx.get_contents() {
-        Ok(contents) => contents,
-        Err(e) => {
-            eprintln!("Error getting clipboard contents: {}", e);
-            return;
-        },
-    };
+    let mut video_url: String = String::new();
+    if env::args().collect::<Vec<String>>().len() > 1 {
+        video_url = env::args().nth(1).unwrap();
+        println!("Found arugment {}", video_url);
+    }
 
+    if video_url.is_empty() {
+        // Create a new clipboard context
+        let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
+    
+        // Get the text from the clipboard
+        video_url = match ctx.get_contents() {
+            Ok(contents) => contents,
+            Err(e) => {
+                eprintln!("Error getting clipboard contents: {}", e);
+                return;
+            },
+        };
+    }
+    
     let regex_expression =  r"(https?|file)://[-[:alnum:]\+&@#/%?=~_|!:,.;]*[-[:alnum:]\+&@#/%=~_|]";
     let re = Regex::new(regex_expression).unwrap();
 
     // Validates if the clipboard is a valid url
-    if !re.is_match(clipboard_contents.as_str()) {
+    if !re.is_match(video_url.as_str()) {
         println!("The string is not a valid url.");
         return;
     }
 
-    // Add character to the beginning
-    let mut video_url = format!("{}{}", '\'', clipboard_contents);
-    
-    // Add character to the end (alternative syntax)
-    video_url.push('\'');
-
     let output = Command::new("yt-dlp")
-        .args(&["--list-formats", clipboard_contents.as_str()])
+        .args(&["--list-formats", video_url.as_str()])
         .output()
         .expect("Failed to execute command");
 
@@ -70,7 +74,7 @@ fn main() {
     let format_parameter: String = format!("{}{}", "--ytdl-format=", stream_id);
 
     Command::new("mpv")
-        .args(&[format_parameter, clipboard_contents])
+        .args(&[format_parameter, video_url])
         .output()
         .expect("Failed to execute command");
 }
