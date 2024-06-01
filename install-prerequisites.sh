@@ -56,7 +56,7 @@ else
 fi
 
 # Download binary file and add it to bin folder
-curl -o /usr/local/bin/lryp https://github.com/HFMorais/low-resource-youtube-playtime/releases/download/v0.9-beta/lryp
+curl -o /usr/local/bin/lryp https://github.com/HFMorais/low-resource-youtube-playtime/releases/download/v1.0/lryp
 chmod +x /usr/local/bin/lryp
 
 # Add mpv configuration
