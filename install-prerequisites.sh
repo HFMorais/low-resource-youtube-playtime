@@ -3,7 +3,14 @@
 # Function to install prerequisites on Debian-based systems
 install_rust_debian() {
     sudo apt update
-    sudo apt install -y ffmpeg mpv yt-dlp
+    sudo apt install -y ffmpeg mpv
+
+    # Download yt-dlp binary from the official website since the debian package is outdated
+    YT_DLP_URL="https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp"
+    YT_DLP_BIN="/usr/local/bin/yt-dlp"
+
+    sudo curl -L $YT_DLP_URL -o $YT_DLP_BIN
+    sudo chmod +x $YT_DLP_BIN
 }
 
 # Function to install prerequisites on Arch-based systems
