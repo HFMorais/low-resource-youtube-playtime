@@ -9,9 +9,37 @@ use std::env;
 fn main() {
 
     let mut video_url: String = String::new();
-    if env::args().collect::<Vec<String>>().len() > 1 {
-        video_url = env::args().nth(1).unwrap();
-        println!("Found arugment {}", video_url);
+    let mut video_quality: String = "720".to_string();
+    let args: Vec<String> = env::args().collect();
+
+    let mut i = 1;
+    while i < args.len() {
+        match args[i].as_str() {
+            "-h" => {
+                println!("Usage: command [-h] [-q quality] <URL>");
+                println!("-h: Print this help message.");
+                println!("-q: Specify the video quality (e.g., 720, 1080, 360). If the specified quality is not available, 720 and upwards will be used.");
+                println!("<URL>: URL of the video to be played.");
+                return;
+            },
+            "-q" if i + 1 < args.len() => {
+                if args[i + 1].parse::<u32>().is_err() {
+                    eprintln!("Error: The format argument must be a number.");
+                    return;
+                }
+                video_quality = args[i + 1].clone();
+                i += 1; // Skip next argument since it's part of -f
+            },
+            _ if video_url.is_empty() => {
+                video_url = args[i].clone();
+                println!("Found argument {}", video_url);
+            },
+            _ => {
+                eprintln!("Unknown argument: {}", args[i]);
+                return;
+            }
+        }
+        i += 1;
     }
 
     if video_url.is_empty() {
@@ -70,7 +98,7 @@ fn main() {
         return;
     }
 
-    let stream_id: String = fetch_available_stream_id(&good_options);
+    let stream_id: String = fetch_available_stream_id(&good_options, &video_quality);
     let format_parameter: String = format!("{}{}", "--ytdl-format=", stream_id);
 
     Command::new("mpv")
@@ -79,11 +107,19 @@ fn main() {
         .expect("Failed to execute command");
 }
 
-fn fetch_available_stream_id(available_options: &Vec<&str>) -> String {
+fn fetch_available_stream_id(available_options: &Vec<&str>, video_quality: &str) -> String {
+
+    
+    if let Some(stream_id) = find_stream_id_by_quality(&available_options, video_quality) {
+        println!("Found quality: {} with stream_id: {}", video_quality, stream_id);
+        return stream_id;
+    }
     if let Some(stream_id) = find_stream_id_by_quality(&available_options, "720") {
+        println!("Found quality: 720 with stream_id: {}", stream_id);
         return stream_id;
     }
     if let Some(stream_id) = find_stream_id_by_quality(&available_options, "1080") {
+        println!("Found quality: 1080 with stream_id: {}", stream_id);
         return stream_id;
     }
 
