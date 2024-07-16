@@ -18,8 +18,13 @@ fn main() {
             "-h" => {
                 println!("Usage: command [-h] [-q quality] <URL>");
                 println!("-h: Print this help message.");
+                println!("-v (--version): Print the version of the program.");
                 println!("-q: Specify the video quality (e.g., 720, 1080, 360). If the specified quality is not available, 720 and upwards will be used.");
                 println!("<URL>: URL of the video to be played.");
+                return;
+            },
+            "-v" | "--version" => {
+                println!("v1.1");
                 return;
             },
             "-q" if i + 1 < args.len() => {
