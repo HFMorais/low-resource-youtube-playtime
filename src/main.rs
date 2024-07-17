@@ -10,6 +10,8 @@ fn main() {
 
     let mut video_url: String = String::new();
     let mut video_quality: String = "720".to_string();
+    let mut simulate: bool = false;
+
     let args: Vec<String> = env::args().collect();
 
     let mut i = 1;
@@ -20,12 +22,17 @@ fn main() {
                 println!("-h: Print this help message.");
                 println!("-v (--version): Print the version of the program.");
                 println!("-q: Specify the video quality (e.g., 720, 1080, 360). If the specified quality is not available, 720 and upwards will be used.");
+                println!("--simulate: Simulate the command without playing the video (debug only).");
                 println!("<URL>: URL of the video to be played.");
                 return;
             },
             "-v" | "--version" => {
                 println!("v1.1");
                 return;
+            },
+            "--simulate" => {
+                println!("Simulating lryp...");
+                simulate = true;
             },
             "-q" if i + 1 < args.len() => {
                 if args[i + 1].parse::<u32>().is_err() {
@@ -142,6 +149,11 @@ fn main() {
     }
 
     let format_parameter: String = format!("{}{}", "--ytdl-format=", stream_id);
+
+    if simulate {
+        println!("Simulating command: mpv {} {}", format_parameter, video_url);
+        return;
+    }
 
     Command::new("mpv")
         .args(&[format_parameter, video_url])
