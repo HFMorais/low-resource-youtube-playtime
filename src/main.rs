@@ -1,12 +1,21 @@
 extern crate regex;
+extern crate log;
+extern crate env_logger;
 
 use clipboard::ClipboardContext;
 use clipboard::ClipboardProvider;
 use std::process::Command;
 use regex::Regex;
 use std::env;
+use log::{info, warn, error};
 
 fn main() {
+     // Set the default log level to info if not set
+     if env::var("RUST_LOG").is_err() {
+        env::set_var("RUST_LOG", "info");
+    }
+
+    env_logger::init();
 
     let mut video_url: String = String::new();
     let mut video_quality: String = "720".to_string();
@@ -31,12 +40,12 @@ fn main() {
                 return;
             },
             "--simulate" => {
-                println!("Simulating lryp...");
+                info!("Simulating lryp...");
                 simulate = true;
             },
             "-q" if i + 1 < args.len() => {
                 if args[i + 1].parse::<u32>().is_err() {
-                    eprintln!("Error: The format argument must be a number.");
+                    error!("Error: The format argument must be a number.");
                     return;
                 }
                 video_quality = args[i + 1].clone();
@@ -44,10 +53,10 @@ fn main() {
             },
             _ if video_url.is_empty() => {
                 video_url = args[i].clone();
-                println!("Found argument {}", video_url);
+                info!("Using video url passed as argument {}", video_url);
             },
             _ => {
-                eprintln!("Unknown argument: {}", args[i]);
+                error!("Unknown argument: {}", args[i]);
                 return;
             }
         }
@@ -62,10 +71,12 @@ fn main() {
         video_url = match ctx.get_contents() {
             Ok(contents) => contents,
             Err(e) => {
-                eprintln!("Error getting clipboard contents: {}", e);
+                error!("Error getting clipboard contents: {}", e);
                 return;
             },
         };
+
+        info!("Found video url from clipboard: {}", video_url);
     }
     
     let regex_expression =  r"(https?|file)://[-[:alnum:]\+&@#/%?=~_|!:,.;]*[-[:alnum:]\+&@#/%=~_|]";
@@ -73,18 +84,18 @@ fn main() {
 
     // Validates if the clipboard is a valid url
     if !re.is_match(video_url.as_str()) {
-        println!("The string is not a valid url.");
+        error!("URL parameter string is not a valid url.");
         return;
     }
 
     let output = Command::new("yt-dlp")
         .args(&["--list-formats", video_url.as_str()])
         .output()
-        .expect("Failed to execute command");
+        .expect("Failed to execute yt-dlp --list-formats command");
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        println!("Error: {}", stderr);
+        error!("Error: {}", stderr);
         return;
     }
     
@@ -107,51 +118,53 @@ fn main() {
         }
     }
 
+    // No video and audio options were found, so just error out
     if combo_options.is_empty() && audio_only_options.is_empty() && video_only_options.is_empty() {
-        println!("No valid formats were found");
+        error!("No valid formats were found");
         return;
     }
 
     let mut stream_id: String = String::new();
 
     // First lets try to fetch a stream id that has video and audio combined for the video quality specified
-    println!("Trying to find a combo stream id...");
+    info!("Trying to find a combo stream id...");
     let combo_stream_id: Option<String> = fetch_available_video_stream_id(&combo_options, &video_quality, false);
     if let Some(id) = combo_stream_id {
-        println!("Found combo stream id: {}", id);
+        info!("Found combo stream id: {}", id);
         stream_id = id;
     }
 
     // Ok we didn't find a combo stream id, so lets try to fetch a video stream id and audio stream id to combine later
     if stream_id.is_empty() {
-        println!("Trying to find a video and audio stream id...");
+        info!("Trying to find a video and audio stream id...");
         let video_stream_id: Option<String> = fetch_available_video_stream_id(&video_only_options, &video_quality, false);
         let audio_stream_id: Option<String> = fetch_available_audio_stream_id(&audio_only_options);
         if let (Some(video_id), Some(audio_id)) = (video_stream_id, audio_stream_id) {
-            println!("Found video and audio streams, video id: {}, audio id: {}", video_id, audio_id);
+            info!("Found video and audio streams, video id: {}, audio id: {}", video_id, audio_id);
             stream_id = format!("{}+{}", video_id, audio_id);
         }
     }
     
     // Shit... we still didn't find a stream id, so lets try to find any stream id that can produce anything
     if stream_id.is_empty() {
-        println!("Trying to find a last resort stream id...");
+        info!("Trying to find a last resort stream id...");
         let last_resort_id: Option<String> = fetch_available_video_stream_id(&video_only_options, &video_quality, true);
         if let Some(id) = last_resort_id {
-            println!("Found last resort stream id: {}", id);
+            info!("Found last resort stream id: {}", id);
             stream_id = id;
         }
     }
 
+    // There is no video id (simple or combo), so error out
     if stream_id.is_empty() {
-        println!("Welp this was a waste of time, no stream id found.");
+        warn!("Unable to fetch a valid stream id.");
         return;
     }
 
     let format_parameter: String = format!("{}{}", "--ytdl-format=", stream_id);
 
     if simulate {
-        println!("Simulating command: mpv {} {}", format_parameter, video_url);
+        info!("Simulating command: mpv {} {}", format_parameter, video_url);
         return;
     }
 
@@ -159,8 +172,6 @@ fn main() {
         .args(&[format_parameter, video_url])
         .output()
         .expect("Failed to execute command");
-
-
 }
 
 /**
@@ -174,17 +185,17 @@ fn main() {
 fn fetch_available_video_stream_id(available_options: &Vec<&str>, video_quality: &str, allow_last_resort: bool) -> Option<String> {
 
     if let Some(stream_id) = find_stream_id_by_quality(&available_options, video_quality) {
-        println!("Found video quality: {} with stream_id: {}", video_quality, stream_id);
+        info!("Found video quality: {} with stream_id: {}", video_quality, stream_id);
         return Some(stream_id);
     }
 
     if allow_last_resort {
         if let Some(stream_id) = find_stream_id_by_quality(&available_options, "720") {
-            println!("Found video quality: 720 with stream_id: {}", stream_id);
+            info!("Found video quality: 720 with stream_id: {}", stream_id);
             return Some(stream_id);
         }
         if let Some(stream_id) = find_stream_id_by_quality(&available_options, "1080") {
-            println!("Found video quality: 1080 with stream_id: {}", stream_id);
+            info!("Found video quality: 1080 with stream_id: {}", stream_id);
             return Some(stream_id);
         }
 
