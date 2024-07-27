@@ -19,9 +19,11 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/HFMorais/low-resource-yout
 ### And now what?
 Now just use the binary, simply call it in your terminal of choice.
 ```
-Usage: command [-h] [-q quality] <URL>
--h: Print this help message.
--q: Specify the video quality (e.g., 720, 1080, 360). If the specified quality is not available, 720 and upwards will be used.
+Usage: command [-h] [-q quality] [--simulate] <URL>
+-h (--help): Print this help message.
+-v (--version): Print the version of the program.
+-q (--quality): Specify the video quality (e.g., 720, 1080, 360). If the specified quality is not available, 720 and upwards will be used.
+--simulate: Simulate the command without playing the video (debug only).
 <URL>: URL of the video to be played.
 ```
 My favorite way of using it, is to create a keyboard shortcut and just have the video url in the clipboard.

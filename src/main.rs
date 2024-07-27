@@ -26,30 +26,31 @@ fn main() {
     let mut i = 1;
     while i < args.len() {
         match args[i].as_str() {
-            "-h" => {
+            "-h" | "--help" => {
                 println!("Usage: command [-h] [-q quality] <URL>");
-                println!("-h: Print this help message.");
+                println!("-h (--help): Print this help message.");
                 println!("-v (--version): Print the version of the program.");
-                println!("-q: Specify the video quality (e.g., 720, 1080, 360). If the specified quality is not available, 720 and upwards will be used.");
+                println!("-q (--quality): Specify the video quality (e.g., 720, 1080, 360). If the specified quality is not available, 720 and upwards will be used.");
                 println!("--simulate: Simulate the command without playing the video (debug only).");
                 println!("<URL>: URL of the video to be played.");
                 return;
             },
             "-v" | "--version" => {
-                println!("v1.1");
+                println!("v1.2");
                 return;
             },
             "--simulate" => {
                 info!("Simulating lryp...");
                 simulate = true;
             },
-            "-q" if i + 1 < args.len() => {
+            "-q" | "--quality" if i + 1 < args.len() => {
                 if args[i + 1].parse::<u32>().is_err() {
                     error!("Error: The format argument must be a number.");
                     return;
                 }
                 video_quality = args[i + 1].clone();
-                i += 1; // Skip next argument since it's part of -f
+                info!("Searching for video with {} quality", video_quality);
+                i += 1;
             },
             _ if video_url.is_empty() => {
                 video_url = args[i].clone();
@@ -76,7 +77,7 @@ fn main() {
             },
         };
 
-        info!("Found video url from clipboard: {}", video_url);
+        info!("Using content from clipboard as video url: {}", video_url);
     }
     
     let regex_expression =  r"(https?|file)://[-[:alnum:]\+&@#/%?=~_|!:,.;]*[-[:alnum:]\+&@#/%=~_|]";
