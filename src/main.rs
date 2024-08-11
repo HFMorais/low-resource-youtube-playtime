@@ -10,6 +10,9 @@ use std::env;
 use log::{info, warn, error};
 
 mod channel_parser;
+mod core;
+
+use core::database_handler;
 
 #[derive(Debug)]
 struct VideoEntry {
@@ -54,8 +57,11 @@ fn main() {
             "-s" | "--scrapping" => {
                 let channel_url = args[i + 1].clone();
                 //let channel_id = fetch_youtube_channel_id("https://www.youtube.com/@LinusTechTips");
-                let channel_id = channel_parser::fetch_youtube_channel_id(&channel_url);
-                let video_entries = channel_parser::fetch_last_10_videos_from_channel();
+                
+                database_handler::connect();
+                
+                //let channel_id = channel_parser::fetch_youtube_channel_id(&channel_url);
+                //let video_entries = channel_parser::fetch_last_10_videos_from_channel();
                 return;
             },
             "-q" | "--quality" if i + 1 < args.len() => {
