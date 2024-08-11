@@ -8,3 +8,5 @@ clipboard = "=0.5.0"
 regex = "=1.10.4"
 log = "0.4"
 env_logger = "0.9"
+reqwest = { version = "0.12.5", features = ["blocking"] }
+scraper = "0.19.1"
