@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::Path;
+use log::info;
 use rusqlite::{params, Connection, Result};
 
 pub fn connect() -> Result<()> {
@@ -7,21 +7,20 @@ pub fn connect() -> Result<()> {
     let home_path = home::home_dir().unwrap();
     let _ = fs::create_dir_all(format!("{}/.config/lryp/", home_path.display().to_string()));
 
-
     let database_exists = fs::metadata(format!("{}/.config/lryp/lryp.db", home_path.display().to_string())).is_ok();
     
-
     // Open a connection to a new SQLite database
     let conn = Connection::open(format!("{}/.config/lryp/lryp.db", home_path.display().to_string()))?;
 
     // Creates a new table if file doesn't exits
     if !database_exists {
-        println!("database exists");
+        info!("Initializing configurations...");
         let result = match conn.execute(
-            "CREATE TABLE person (
-                id      INTEGER PRIMARY KEY,
-                name    TEXT NOT NULL,
-                data    BLOB
+            "CREATE TABLE channels (
+                id          INTEGER PRIMARY KEY,
+                name        TEXT NOT NULL,
+                channel_id  TEXT,
+                url         TEXT NOT NULL
                 )",
                 [],
             ) {
@@ -33,35 +32,37 @@ pub fn connect() -> Result<()> {
         
     // Insert some data
     conn.execute(
-        "INSERT INTO person (name, data) VALUES (?1, ?2)",
-        params!["Alice", "Some data about Alice"],
+        "INSERT INTO channels (name, url) VALUES (?1, ?2)",
+        params!["Super GT", "https://www.youtube.com/@Super_GT"],
     )?;
     conn.execute(
-        "INSERT INTO person (name, data) VALUES (?1, ?2)",
-        params!["Bob", "Some data about Bob"],
+        "INSERT INTO channels (name, url) VALUES (?1, ?2)",
+        params!["TitusTechTalk", "https://www.youtube.com/@TitusTechTalk"],
     )?;
 
     // Query the data
-    let mut stmt = conn.prepare("SELECT id, name, data FROM person")?;
-    let person_iter = stmt.query_map([], |row| {
-        Ok(Person {
+    let mut stmt = conn.prepare("SELECT id, name, url FROM channels")?;
+    let channel_iter = stmt.query_map([], |row| {
+        Ok(Channel {
             id: row.get(0)?,
             name: row.get(1)?,
-            data: row.get(2)?,
+            url: row.get(2)?,
+            channel_id: None
         })
     })?;
 
     // Print the results
-    for person in person_iter {
-        println!("Found person {:?}", person?);
+    for channel in channel_iter {
+        println!("Found channel {:?}", channel?);
     }
 
     Ok(())
 }
 
 #[derive(Debug)]
-struct Person {
+struct Channel {
     id: i32,
     name: String,
-    data: String,
+    channel_id: Option<String>,
+    url: String,
 }
