@@ -47,8 +47,8 @@ pub fn fetch_youtube_channel_id(channel_url: &str) -> Option<String> {
     None
 }
 
-pub fn fetch_last_10_videos_from_channel() -> Vec<VideoEntry> {
-    let channel_id = "UCdBK94H6oZT2Q7l0-b0xmMg";
+pub fn fetch_last_10_videos_from_channel(channel_id: &str) -> Vec<VideoEntry> {
+    //let channel_id = "UCdBK94H6oZT2Q7l0-b0xmMg";
     let url = format!("https://www.youtube.com/feeds/videos.xml?channel_id={}", channel_id);
 
     let mut entries = Vec::new();

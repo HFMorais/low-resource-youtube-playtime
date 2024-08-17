@@ -4,7 +4,6 @@ extern crate env_logger;
 
 use clipboard::ClipboardContext;
 use clipboard::ClipboardProvider;
-use core::database_handler::Channel;
 use std::process::Command;
 use regex::Regex;
 use std::env;
@@ -16,9 +15,9 @@ mod core;
 use core::database_handler;
 
 #[derive(Debug)]
-struct VideoEntry {
-    video_id: String,
-    title: String,
+pub struct VideoEntry {
+    pub video_id: String,
+    pub title: String,
 }
 
 fn main() {
@@ -59,33 +58,7 @@ fn main() {
                 let channel_url = args[i + 1].clone();
                 //let channel_id = fetch_youtube_channel_id("https://www.youtube.com/@LinusTechTips");
                 
-                let database_connection = database_handler::fetch_database_connection();
-
-                let channel_info = database_handler::fetch_channel_id(&database_connection, "https://www.youtube.com/@Super_GT");
-                if channel_info.is_none() {
-                    println!("No channel found");
-                } else {
-                    let mut channel = channel_info.unwrap().clone();
-                    if channel.channel_id.is_none() {
-                        info!("Fetching channel id for: {}", channel.name);
-                        let channel_id = channel_parser::fetch_youtube_channel_id("https://www.youtube.com/@Super_GT");
-                        if channel_id.is_none() {
-                            warn!("Unable to found channel id for: {}", channel_url);
-                        } else {
-                            //database_handler::update_channel_id(&database_connection, channel.id, channel_id.as_ref().unwrap().as_str());
-                            match database_handler::update_channel_id(&database_connection, channel.id, channel_id.as_ref().unwrap().as_str()) {
-                                Ok(_)  => info!("Updated {} channel id", channel_id.as_ref().unwrap()),
-                                Err(e) => println!("Error: {}", e),
-                            }
-                            
-                            channel.channel_id = channel_id;
-                        }
-
-
-                    }
-
-                    info!("Found channel id for {} - {}", channel.name, channel.channel_id.unwrap());
-                }
+                scrap_channel(&channel_url);
                 
                 
                 //let channel_id = channel_parser::fetch_youtube_channel_id(&channel_url);
@@ -286,5 +259,49 @@ fn find_stream_id_by_quality(available_options: &Vec<&str>, quality: &str) -> Op
     None
 }
 
+fn scrap_channel(channel_url: &str) {
+    let mut channel_id: String = String::new();
+    let database_connection = database_handler::fetch_database_connection();
 
+    /*
+     * Lets try the channel information in the database, if we don't have it, then load it.
+     */
+    let mut channel_info = database_handler::fetch_channel_id(&database_connection, channel_url);
+    if channel_info.is_none() {
+        info!("First time searching for channel, save it in database...");
+
+        match channel_parser::fetch_youtube_channel_id(channel_url) {
+            Some(value) => channel_id = value,
+            None => error!("Unable to fetch channel id"),
+        }
+
+        channel_info = Some(database_handler::save_channel_info(&database_connection, "stuff", channel_url, channel_id.as_str()).unwrap());
+    }
+
+    let mut channel = channel_info.unwrap().clone();
+    
+    if channel.channel_id.is_none() {
+        info!("Fetching channel id for: {}", channel.name);
+        let channel_id_option = channel_parser::fetch_youtube_channel_id(channel_url);
+        if channel_id_option.is_none() {
+            warn!("Unable to found channel id for: {}", channel_url);
+        } else {
+            channel_id = channel_id_option.unwrap();
+            match database_handler::update_channel_id(&database_connection, channel.id, &channel_id) {
+                Ok(_)  => {},
+                Err(e) => println!("Error: {}", e),
+            }
+            
+            channel.channel_id = Some(channel_id.to_string());
+        }
+    } else {
+        channel_id = channel.channel_id.unwrap();
+    }
+
+    info!("Found channel id for {} - {}", channel.name, channel_id);
+    let _ = channel_parser::fetch_last_10_videos_from_channel(channel_id.as_str());
+        
+
+    
+}
 

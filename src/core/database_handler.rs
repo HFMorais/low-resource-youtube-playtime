@@ -55,6 +55,22 @@ pub fn fetch_channel_id(conn: &Connection, channel_url: &str) -> Option<Channel>
     }
 }
 
+pub fn save_channel_info(conn: &Connection, name: &str, url: &str, channel_id: &str) -> Result<Channel> {
+    conn.execute(
+        "INSERT INTO channels (name, channel_id, url) VALUES (?1, ?2, ?3)",
+        params![name, channel_id, url],
+    )?;
+
+    let id = conn.last_insert_rowid();
+
+    Ok(Channel {
+        id: id as i32,
+        name: name.to_string(),
+        url: url.to_string(),
+        channel_id: Some(channel_id.to_string()),
+    })
+}
+
 pub fn update_channel_id(conn: &Connection, id: i32, channel_id: &str) -> Result<()> {
     conn.execute("UPDATE channels SET channel_id = ?1 WHERE id = ?2", params![channel_id, id],)?;
     Ok(())
@@ -65,7 +81,7 @@ pub struct Channel {
     pub id: i32,
     pub name: String,
     pub channel_id: Option<String>,
-    url: String,
+    pub url: String,
 }
 
 impl fmt::Display for Channel {
