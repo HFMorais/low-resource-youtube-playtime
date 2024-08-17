@@ -4,6 +4,7 @@ extern crate env_logger;
 
 use clipboard::ClipboardContext;
 use clipboard::ClipboardProvider;
+use core::database_handler::Channel;
 use std::process::Command;
 use regex::Regex;
 use std::env;
@@ -58,7 +59,34 @@ fn main() {
                 let channel_url = args[i + 1].clone();
                 //let channel_id = fetch_youtube_channel_id("https://www.youtube.com/@LinusTechTips");
                 
-                database_handler::connect();
+                let database_connection = database_handler::fetch_database_connection();
+
+                let channel_info = database_handler::fetch_channel_id(&database_connection, "https://www.youtube.com/@Super_GT");
+                if channel_info.is_none() {
+                    println!("No channel found");
+                } else {
+                    let mut channel = channel_info.unwrap().clone();
+                    if channel.channel_id.is_none() {
+                        info!("Fetching channel id for: {}", channel.name);
+                        let channel_id = channel_parser::fetch_youtube_channel_id("https://www.youtube.com/@Super_GT");
+                        if channel_id.is_none() {
+                            warn!("Unable to found channel id for: {}", channel_url);
+                        } else {
+                            //database_handler::update_channel_id(&database_connection, channel.id, channel_id.as_ref().unwrap().as_str());
+                            match database_handler::update_channel_id(&database_connection, channel.id, channel_id.as_ref().unwrap().as_str()) {
+                                Ok(_)  => info!("Updated {} channel id", channel_id.as_ref().unwrap()),
+                                Err(e) => println!("Error: {}", e),
+                            }
+                            
+                            channel.channel_id = channel_id;
+                        }
+
+
+                    }
+
+                    info!("Found channel id for {} - {}", channel.name, channel.channel_id.unwrap());
+                }
+                
                 
                 //let channel_id = channel_parser::fetch_youtube_channel_id(&channel_url);
                 //let video_entries = channel_parser::fetch_last_10_videos_from_channel();
