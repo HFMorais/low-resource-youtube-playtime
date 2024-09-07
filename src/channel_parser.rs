@@ -4,6 +4,58 @@ use regex::Regex;
 use log::{info, error};
 
 use crate::VideoEntry;
+use crate::database_handler::Channel;
+
+pub fn fetch_channel_information(channel_url: &str) -> Option<Channel> {
+    // Send a GET request to the channel URL
+    let response = reqwest::blocking::get(channel_url).unwrap();
+
+    // Check if the request was successful
+    if !response.status().is_success() {
+        error!("Failed to fetch channel page: HTTP {}", response.status());
+        return None;
+    }
+
+    // Parse the HTML content
+    let body = response.text().unwrap();
+    //let document = Html::parse_document(&body);
+
+    // Fetch the channel title
+    let channel_title_option = fetch_youtube_channel_title(body);
+    if channel_title_option.is_none() {
+        error!("No channel title was found");
+        return None;
+    }
+
+    info!("the channel title is: {0}", channel_title_option.clone().unwrap());
+
+    let channel_id_option = fetch_youtube_channel_id(channel_url);
+
+    let channel = Channel {
+        id: 0,
+        name: channel_title_option.unwrap(),
+        url: channel_url.to_string(),
+        channel_id: channel_id_option
+    };
+
+
+    return Some(channel)
+}
+
+fn fetch_youtube_channel_title(html_body: String) -> Option<String> {
+    // Regex to match the content within <title> tags
+    let title_re = Regex::new(r#"<title>([^<]+)</title>"#).unwrap();
+
+    if let Some(captures) = title_re.captures(&html_body) {
+        if let Some(title) = captures.get(1) {
+            info!("Found channel Title: {}", title.as_str());
+            return Some(title.as_str().to_string());
+        }
+    }
+
+    error!("No channel title found");
+    None
+}
 
 /**
  * Fetches the YouTube channel ID from a channel URL.
@@ -35,11 +87,17 @@ pub fn fetch_youtube_channel_id(channel_url: &str) -> Option<String> {
     }
 
     // If not found in meta tags, try to find it in the page source
-    let re = Regex::new(r#""channelId"\s*:\s*"([^"]+)""#).unwrap();
+    let re = Regex::new(r#"<link\s+rel="alternate"\s+type="application/rss\+xml"\s+title="RSS"\s+href="([^"]+)">"#).unwrap();
     if let Some(captures) = re.captures(&body) {
-        if let Some(channel_id) = captures.get(1) {
-            info!("Found channel ID: {}", channel_id.as_str());
-            return Some(channel_id.as_str().to_string());
+        if let Some(url) = captures.get(1) {
+            let channel_id_re = Regex::new(r#"channel_id=([^&]+)"#).unwrap();
+
+            if let Some(id_captures) = channel_id_re.captures(url.as_str()) {
+                if let Some(channel_id) = id_captures.get(1) {
+                    info!("Found channel ID: {}", channel_id.as_str());
+                    return Some(channel_id.as_str().to_string());
+                }
+            }
         }
     }
 
