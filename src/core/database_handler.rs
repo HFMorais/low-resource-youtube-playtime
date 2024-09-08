@@ -71,15 +71,15 @@ pub fn save_channel_info(conn: &Connection, name: &str, url: &str, channel_id: &
     })
 }
 
-pub fn update_channel_id(conn: &Connection, id: i32, channel_id: &str) -> Result<()> {
-    conn.execute("UPDATE channels SET channel_id = ?1 WHERE id = ?2", params![channel_id, id],)?;
-    Ok(())
-}
-
-pub fn update_channel_info(conn: &Connection, channel_info: &Channel) -> Result<()> {
-    conn.execute("UPDATE channels SET channel_id = ?1, name = ?2 WHERE id = ?3", params![channel_info.channel_id, channel_info.name, channel_info.id],)?;
-    Ok(())
-} 
+// pub fn update_channel_id(conn: &Connection, id: i32, channel_id: &str) -> Result<()> {
+//     conn.execute("UPDATE channels SET channel_id = ?1 WHERE id = ?2", params![channel_id, id],)?;
+//     Ok(())
+// }
+//
+// pub fn update_channel_info(conn: &Connection, channel_info: &Channel) -> Result<()> {
+//     conn.execute("UPDATE channels SET channel_id = ?1, name = ?2 WHERE id = ?3", params![channel_info.channel_id, channel_info.name, channel_info.id],)?;
+//     Ok(())
+// } 
 
 #[derive(Clone, Debug)]
 pub struct Channel {

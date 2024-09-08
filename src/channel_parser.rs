@@ -27,13 +27,14 @@ pub fn fetch_channel_information(channel_url: &str) -> Option<Channel> {
         return None;
     }
 
-    info!("the channel title is: {0}", channel_title_option.clone().unwrap());
-
     let channel_id_option = fetch_youtube_channel_id(channel_url);
-
+    if channel_id_option.is_none() {
+        error!("No channel id was found");
+        return None;
+    }
     let channel = Channel {
         id: 0,
-        name: channel_title_option.unwrap(),
+        name: channel_title_option.unwrap().replace(" - YouTube", ""),
         url: channel_url.to_string(),
         channel_id: channel_id_option
     };
