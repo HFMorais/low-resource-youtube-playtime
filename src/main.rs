@@ -12,13 +12,8 @@ use log::{info, warn, error};
 mod channel_parser;
 mod core;
 
+use core::data_structures;
 use core::database_handler;
-
-#[derive(Debug)]
-pub struct VideoEntry {
-    pub video_id: String,
-    pub title: String,
-}
 
 fn main() {
      // Set the default log level to info if not set

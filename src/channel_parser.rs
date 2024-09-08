@@ -3,8 +3,8 @@ use reqwest::blocking::Client;
 use regex::Regex;
 use log::{info, error};
 
-use crate::VideoEntry;
-use crate::database_handler::Channel;
+use crate::data_structures::Channel;
+use crate::data_structures::VideoEntry;
 
 pub fn fetch_channel_information(channel_url: &str) -> Option<Channel> {
     // Send a GET request to the channel URL

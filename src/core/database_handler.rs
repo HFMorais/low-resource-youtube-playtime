@@ -1,7 +1,7 @@
 use std::fs;
-use std::fmt;
 use log::{info,error};
 use rusqlite::{params, Connection, Result};
+use crate::data_structures::Channel;
 
 pub fn fetch_database_connection() -> Connection {
 
@@ -81,16 +81,3 @@ pub fn save_channel_info(conn: &Connection, name: &str, url: &str, channel_id: &
 //     Ok(())
 // } 
 
-#[derive(Clone, Debug)]
-pub struct Channel {
-    pub id: i32,
-    pub name: String,
-    pub channel_id: Option<String>,
-    pub url: String,
-}
-
-impl fmt::Display for Channel {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.name)
-    }
-}
