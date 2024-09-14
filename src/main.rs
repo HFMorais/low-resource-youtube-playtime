@@ -13,9 +13,11 @@ use log::{info, warn, error};
 
 mod channel_parser;
 mod core;
+mod ui;
 
 use core::data_structures;
 use core::database_handler;
+use crate::ui::main_window;
 
 fn main() {
      // Set the default log level to info if not set
@@ -58,6 +60,9 @@ fn main() {
                 fetch_channel_videos(&channel_url);
                 
                 return;
+            },
+            "-t" => {
+                let _ = main_window::main_window();
             },
             "-q" | "--quality" if i + 1 < args.len() => {
                 if args[i + 1].parse::<u32>().is_err() {
