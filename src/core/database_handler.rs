@@ -85,7 +85,23 @@ pub fn save_channel_info(conn: &Connection, channel: &Channel) -> Result<i64> {
     Ok(conn.last_insert_rowid())
 }
 
-pub fn save_video_info(conn: &Connection, video_entry: &VideoEntry) -> Result<i64> {
+/*
+ * Add video to database, if it already exists there then do nothing
+ * If the return value is -1, the video already was in database.
+ */ 
+pub fn add_video_to_database(conn: &Connection, video_entry: &VideoEntry) -> Result<i64> {
+    // Check if the video already exists in the database
+    let count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM videos WHERE video_id = ?1",
+        params![video_entry.video_id],
+        |row| row.get(0),
+    )?;
+
+    // If the video already exists, return early
+    if count > 0 {
+        return Ok(-1);
+    }
+
     conn.execute(
         "INSERT INTO videos (name, channel_id, video_id, time_added, seen) VALUES (?1, ?2, ?3, ?4, ?5)", 
         params![
@@ -98,4 +114,28 @@ pub fn save_video_info(conn: &Connection, video_entry: &VideoEntry) -> Result<i6
     )?;
 
     Ok(conn.last_insert_rowid())
+}
+
+pub fn fetch_videos_from_channel(conn: &Connection, channel_id: &i64) -> Result<Vec<VideoEntry>> {
+    let mut videos = Vec::new();
+    let mut stmt = conn.prepare(
+        "SELECT id, name, channel_id, video_id, time_added, seen FROM videos WHERE channel_id = ?1 and seen = ?0 order by id desc"
+    )?;
+    
+    let rows = stmt.query_map(params![channel_id, 0], |row| {
+        Ok(VideoEntry {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            channel_id: row.get(2)?,
+            video_id: row.get(3)?,
+            added_date: row.get(4)?,
+            seen: row.get(5)?,
+        })
+    })?;
+
+    for video in rows {
+        videos.push(video?);
+    }
+
+    Ok(videos)
 }

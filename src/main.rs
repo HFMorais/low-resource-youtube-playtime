@@ -4,6 +4,8 @@ extern crate env_logger;
 
 use clipboard::ClipboardContext;
 use clipboard::ClipboardProvider;
+use core::data_structures::VideoEntry;
+use std::collections::HashMap;
 use std::process::Command;
 use regex::Regex;
 use std::env;
@@ -53,11 +55,8 @@ fn main() {
                 let channel_url = args[i + 1].clone();
                 //let channel_id = fetch_youtube_channel_id("https://www.youtube.com/@LinusTechTips");
                 
-                scrap_channel(&channel_url);
+                fetch_channel_videos(&channel_url);
                 
-                
-                //let channel_id = channel_parser::fetch_youtube_channel_id(&channel_url);
-                //let video_entries = channel_parser::fetch_last_10_videos_from_channel();
                 return;
             },
             "-q" | "--quality" if i + 1 < args.len() => {
@@ -254,7 +253,7 @@ fn find_stream_id_by_quality(available_options: &Vec<&str>, quality: &str) -> Op
     None
 }
 
-fn scrap_channel(channel_url: &str) {
+fn fetch_channel_videos(channel_url: &str) {
     let database_connection = database_handler::fetch_database_connection();
     let mut channel: data_structures::Channel;
 
@@ -280,8 +279,25 @@ fn scrap_channel(channel_url: &str) {
     } else {
         channel = channel_info_option.unwrap();
     }
+
     info!("Found channel id for {} - {}", &channel.name, &channel.channel_id.as_ref().unwrap());
-    let _ = channel_parser::fetch_last_10_videos_from_channel(&database_connection, &channel);
+    let parsed_video_vector = channel_parser::fetch_last_10_videos_from_channel(&channel);
+
+    // Now that we scrapped the last 10 videos of a channel, add them to the database
+    for video in parsed_video_vector {
+        let _ = database_handler::add_video_to_database(&database_connection, &video);  
+    }
+
+    /*
+     * Now build a hashmap with the videos from the database and the ones that we scrapped
+     */ 
+    let mut video_hashmap: HashMap<i64, VideoEntry> = HashMap::new();
+    let saved_videos_result = database_handler::fetch_videos_from_channel(&database_connection, &channel.id);
+    if saved_videos_result.is_ok() {
+        for video in saved_videos_result.unwrap() {
+            video_hashmap.insert(video.id, video);
+        }
+    }
 
 }
 
