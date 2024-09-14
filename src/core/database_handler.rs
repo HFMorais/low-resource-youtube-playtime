@@ -3,6 +3,8 @@ use log::{info,error};
 use rusqlite::{params, Connection, Result};
 use crate::data_structures::Channel;
 
+use super::data_structures::VideoEntry;
+
 pub fn fetch_database_connection() -> Connection {
 
     let home_path = home::home_dir().unwrap();
@@ -16,12 +18,30 @@ pub fn fetch_database_connection() -> Connection {
     // Creates a new table if file doesn't exits
     if !database_exists {
         info!("Initializing configurations...");
+        // Create table for channels
         match conn.execute(
             "CREATE TABLE channels (
                 id          INTEGER PRIMARY KEY,
                 name        TEXT NOT NULL,
                 channel_id  TEXT,
                 url         TEXT NOT NULL
+                )",
+                [],
+            ) {
+                Ok(_) => {},
+                Err(error) => error!("Error: {error:?}"),
+            };
+
+        // Create table for video entries
+        match conn.execute(
+            "CREATE TABLE videos (
+                id          INTEGER PRIMARY KEY,
+                name        TEXT NOT NULL,
+                channel_id  INTEGER NOT NULL,
+                video_id    TEXT NOT NULL,
+                time_added  INTEGER,
+                seen        INTEGER,
+                FOREIGN KEY(channel_id) REFERENCES channels(id)
                 )",
                 [],
             ) {
@@ -55,29 +75,27 @@ pub fn fetch_channel_id(conn: &Connection, channel_url: &str) -> Option<Channel>
     }
 }
 
-pub fn save_channel_info(conn: &Connection, name: &str, url: &str, channel_id: &str) -> Result<Channel> {
+//pub fn save_channel_info(conn: &Connection, name: &str, url: &str, channel_id: &str) -> Result<Channel> {
+pub fn save_channel_info(conn: &Connection, channel: &Channel) -> Result<i64> {
     conn.execute(
         "INSERT INTO channels (name, channel_id, url) VALUES (?1, ?2, ?3)",
-        params![name, channel_id, url],
+        params![channel.name, channel.channel_id, channel.url],
     )?;
 
-    let id = conn.last_insert_rowid();
-
-    Ok(Channel {
-        id: id as i32,
-        name: name.to_string(),
-        url: url.to_string(),
-        channel_id: Some(channel_id.to_string()),
-    })
+    Ok(conn.last_insert_rowid())
 }
 
-// pub fn update_channel_id(conn: &Connection, id: i32, channel_id: &str) -> Result<()> {
-//     conn.execute("UPDATE channels SET channel_id = ?1 WHERE id = ?2", params![channel_id, id],)?;
-//     Ok(())
-// }
-//
-// pub fn update_channel_info(conn: &Connection, channel_info: &Channel) -> Result<()> {
-//     conn.execute("UPDATE channels SET channel_id = ?1, name = ?2 WHERE id = ?3", params![channel_info.channel_id, channel_info.name, channel_info.id],)?;
-//     Ok(())
-// } 
+pub fn save_video_info(conn: &Connection, video_entry: &VideoEntry) -> Result<i64> {
+    conn.execute(
+        "INSERT INTO videos (name, channel_id, video_id, time_added, seen) VALUES (?1, ?2, ?3, ?4, ?5)", 
+        params![
+            video_entry.title,
+            video_entry.channel_id,
+            video_entry.video_id,
+            video_entry.added_date,
+            video_entry.seen
+        ]
+    )?;
 
+    Ok(conn.last_insert_rowid())
+}

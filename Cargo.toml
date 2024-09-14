@@ -12,3 +12,4 @@ reqwest = { version = "0.12.5", features = ["blocking"] }
 scraper = "0.19.1"
 rusqlite = "0.32.1"
 home = "0.5.9"
+chrono = "0.4.38"

@@ -256,30 +256,32 @@ fn find_stream_id_by_quality(available_options: &Vec<&str>, quality: &str) -> Op
 
 fn scrap_channel(channel_url: &str) {
     let database_connection = database_handler::fetch_database_connection();
+    let mut channel: data_structures::Channel;
 
     /*
      * Lets try the channel information in the database, if we don't have it, then load it.
      */
-    let mut channel_info = database_handler::fetch_channel_id(&database_connection, channel_url);
-    if channel_info.is_none() {
+    let mut channel_info_option = database_handler::fetch_channel_id(&database_connection, channel_url);
+    if channel_info_option.is_none() {
         info!("Channel not found in local database. Lets fetch the information...");
 
-        channel_info = channel_parser::fetch_channel_information(channel_url);
-        if channel_info.is_none() {
+        channel_info_option = channel_parser::fetch_channel_information(channel_url);
+        if channel_info_option.is_none() {
             error!("Unable to fetch channel information from youtube!");
             return;
         }
 
-        let channel_info_to_persist = channel_info.clone();
-        let _ = database_handler::save_channel_info(
-            &database_connection,
-            &channel_info_to_persist.as_ref().unwrap().name.as_str(),
-            channel_url,
-            &channel_info_to_persist.as_ref().unwrap().channel_id.as_ref().unwrap()
-        );
-    }
+        channel = channel_info_option.unwrap();
 
-    info!("Found channel id for {} - {}", &channel_info.as_ref().unwrap().name.as_str(), &channel_info.as_ref().unwrap().channel_id.as_ref().unwrap());
-    let _ = channel_parser::fetch_last_10_videos_from_channel(&channel_info.unwrap().channel_id.as_ref().unwrap());
+        let channel_id = database_handler::save_channel_info(&database_connection, &channel);
+        if channel_id.is_ok() {
+            channel.id = channel_id.unwrap();
+        }
+    } else {
+        channel = channel_info_option.unwrap();
+    }
+    info!("Found channel id for {} - {}", &channel.name, &channel.channel_id.as_ref().unwrap());
+    let _ = channel_parser::fetch_last_10_videos_from_channel(&database_connection, &channel);
+
 }
 

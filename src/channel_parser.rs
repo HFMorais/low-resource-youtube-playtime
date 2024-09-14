@@ -2,7 +2,10 @@ use scraper::{Html, Selector};
 use reqwest::blocking::Client;
 use regex::Regex;
 use log::{info, error};
+use chrono::Utc;
+use rusqlite::Connection;
 
+use crate::core::database_handler;
 use crate::data_structures::Channel;
 use crate::data_structures::VideoEntry;
 
@@ -106,9 +109,8 @@ pub fn fetch_youtube_channel_id(channel_url: &str) -> Option<String> {
     None
 }
 
-pub fn fetch_last_10_videos_from_channel(channel_id: &str) -> Vec<VideoEntry> {
-    //let channel_id = "UCdBK94H6oZT2Q7l0-b0xmMg";
-    let url = format!("https://www.youtube.com/feeds/videos.xml?channel_id={}", channel_id);
+pub fn fetch_last_10_videos_from_channel(conn: &Connection, channel: &Channel) -> Vec<VideoEntry> {
+    let url = format!("https://www.youtube.com/feeds/videos.xml?channel_id={}", channel.channel_id.as_ref().unwrap());
 
     let mut entries = Vec::new();
 
@@ -148,7 +150,22 @@ pub fn fetch_last_10_videos_from_channel(channel_id: &str) -> Vec<VideoEntry> {
             found_video_id = false;
             found_video_title = false;
 
-            let video_entry = VideoEntry { video_id: video_id.to_string(), title: video_title.to_string() };
+            let current_datetime = Utc::now();
+
+            let mut video_entry = VideoEntry {
+                id: -1,
+                video_id: video_id.to_string(), 
+                title: video_title.to_string(),
+                channel_id: channel.id,
+                added_date: current_datetime.timestamp(),
+                seen: false
+            };
+
+            let video_add_result = database_handler::save_video_info(conn, &video_entry);
+            if video_add_result.is_ok() {
+                video_entry.id = video_add_result.unwrap();
+            }
+
             entries.push(video_entry);
 
             info!("Found video: {} - {}", video_id, video_title);
