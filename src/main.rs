@@ -17,7 +17,7 @@ mod ui;
 
 use core::data_structures;
 use core::database_handler;
-use crate::ui::main_window;
+use crate::ui::channel_window;
 
 fn main() {
      // Set the default log level to info if not set
@@ -61,8 +61,9 @@ fn main() {
                 
                 return;
             },
-            "-t" => {
-                let _ = main_window::main_window();
+            "-b" => {
+                let _ = channel_window::main();
+                return;
             },
             "-q" | "--quality" if i + 1 < args.len() => {
                 if args[i + 1].parse::<u32>().is_err() {
