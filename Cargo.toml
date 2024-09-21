@@ -13,6 +13,6 @@ scraper = "0.19.1"
 rusqlite = "0.32.1"
 home = "0.5.9"
 chrono = "0.4.38"
-cursive = "0.21"
+cursive = { version = "0.21", features = ["toml"] }
 cursive_table_view = "0.15"
 rand = "0.8.4"

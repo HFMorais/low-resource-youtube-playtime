@@ -14,7 +14,6 @@ use cursive::align::HAlign;
 use cursive::traits::*;
 use cursive::views::{Dialog, TextView};
 use cursive::Cursive;
-use rand::Rng;
 
 // Modules --------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -22,36 +21,29 @@ use cursive_table_view::{TableView, TableViewItem};
 
 use crate::ui::videos_window;
 
+use crate::data_structures::Channel;
+use crate::database_handler;
+
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
 enum BasicColumn {
     Name,
-    Count,
-    Rate,
+    Url,
 }
 
 impl BasicColumn {
     fn as_str(&self) -> &str {
         match *self {
             BasicColumn::Name => "Name",
-            BasicColumn::Count => "Count",
-            BasicColumn::Rate => "Rate",
+            BasicColumn::Url => "Url",
         }
     }
 }
 
-#[derive(Clone, Debug)]
-struct Foo {
-    name: String,
-    count: usize,
-    rate: usize,
-}
-
-impl TableViewItem<BasicColumn> for Foo {
+impl TableViewItem<BasicColumn> for Channel {
     fn to_column(&self, column: BasicColumn) -> String {
         match column {
             BasicColumn::Name => self.name.to_string(),
-            BasicColumn::Count => format!("{}", self.count),
-            BasicColumn::Rate => format!("{}", self.rate),
+            BasicColumn::Url => format!("{}", self.url),
         }
     }
 
@@ -61,32 +53,38 @@ impl TableViewItem<BasicColumn> for Foo {
     {
         match column {
             BasicColumn::Name => self.name.cmp(&other.name),
-            BasicColumn::Count => self.count.cmp(&other.count),
-            BasicColumn::Rate => self.rate.cmp(&other.rate),
+            BasicColumn::Url => self.url.cmp(&other.url),
         }
     }
 }
 
-pub fn main() {
-    let mut rng = rand::thread_rng();
-
+pub fn render_window() {
     let mut siv = cursive::default();
-    let mut table = TableView::<Foo, BasicColumn>::new()
-        .column(BasicColumn::Name, "Name", |c| c.width_percent(20))
-        .column(BasicColumn::Count, "Count", |c| c.align(HAlign::Center))
-        .column(BasicColumn::Rate, "Rate", |c| {
+    //let mut siv = Cursive::new();
+
+    siv.load_toml(include_str!("style.toml")).unwrap();
+
+    let mut table = TableView::<Channel, BasicColumn>::new()
+        .column(BasicColumn::Name, "Name", |c| c.width_percent(30))
+        .column(BasicColumn::Url, "URL", |c| {
             c.ordering(Ordering::Greater)
                 .align(HAlign::Right)
                 .width_percent(20)
         });
-
+        
     let mut items = Vec::new();
-    for i in 0..50 {
-        items.push(Foo {
-            name: format!("Name {}", i),
-            count: rng.gen_range(0..=255),
-            rate: rng.gen_range(0..=255),
-        });
+    
+    let database_connection = database_handler::fetch_database_connection();
+    let channels_result = database_handler::fetch_channels_vec(&database_connection);
+    if channels_result.is_ok() {
+        for channel in channels_result.unwrap() {
+            items.push(Channel {
+                id: channel.id,
+                channel_id: channel.channel_id,
+                name: channel.name,
+                url: channel.url
+            });
+        }
     }
 
     table.set_items(items);
@@ -103,7 +101,7 @@ pub fn main() {
 
     table.set_on_submit(|siv: &mut Cursive, row: usize, index: usize| {
         let value = siv
-            .call_on_name("table", move |table: &mut TableView<Foo, BasicColumn>| {
+            .call_on_name("table", move |table: &mut TableView<Channel, BasicColumn>| {
                 format!("{:?}", table.borrow_item(index).unwrap())
             })
             .unwrap();

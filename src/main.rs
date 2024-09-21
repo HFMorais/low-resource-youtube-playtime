@@ -62,7 +62,7 @@ fn main() {
                 return;
             },
             "-b" => {
-                let _ = channel_window::main();
+                let _ = channel_window::render_window();
                 return;
             },
             "-q" | "--quality" if i + 1 < args.len() => {

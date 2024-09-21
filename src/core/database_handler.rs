@@ -53,6 +53,27 @@ pub fn fetch_database_connection() -> Connection {
     return conn;
 }
 
+pub fn fetch_channels_vec(conn: &Connection) -> Result<Vec<Channel>> {
+    let mut stmt = conn.prepare("SELECT id, name, url, channel_id FROM channels")?;
+
+    let rows = stmt.query_map(params![], |row| {
+        Ok(Channel {
+            id: row.get(0)?,
+            name: row.get(1)?,
+            url: row.get(2)?,
+            channel_id: row.get(3)?,
+        })
+    })?;
+
+    let mut channels = Vec::new();
+
+    for channel in rows {
+        channels.push(channel?);
+    }
+
+    Ok(channels)
+}
+
 pub fn fetch_channel_id(conn: &Connection, channel_url: &str) -> Option<Channel> {
 
     // Prepare the SQL query
