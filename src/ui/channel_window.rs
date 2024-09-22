@@ -69,8 +69,7 @@ pub fn render_window() {
         .column(BasicColumn::Name, "Name", |c| c.width_percent(30))
         .column(BasicColumn::Url, "URL", |c| {
             c.ordering(Ordering::Greater)
-                .align(HAlign::Right)
-                .width_percent(20)
+                .align(HAlign::Left)
         });
         
     let mut items = Vec::new();
@@ -131,12 +130,12 @@ pub fn render_window() {
                 .content(
                     EditView::new()
                         .on_submit(add_url_event)
-                        .with_name("edit")
+                        .with_name("add_channel")
                         .min_width(50),
                 )
                 .button("Ok", |s| {
                     let text = s
-                        .call_on_name("edit", |view: &mut EditView| view.get_content())
+                        .call_on_name("add_channel", |view: &mut EditView| view.get_content())
                         .unwrap();
                     add_url_event(s, &text);
                 })
@@ -148,15 +147,15 @@ pub fn render_window() {
     ));
 
 
-    siv.add_global_callback('t', |s| s.add_layer(
-        // Most views can be configured in a chainable way
-        Dialog::around(TextView::new("Hello Dialog!").min_width(100))
-            .title("Cursive")
-            .button("Foo", |_s| ())
-            .button("Quit", |s| s.quit())
-            .wrap_with(CircularFocus::new)
-            .wrap_tab(),
-    ));
+    // siv.add_global_callback('t', |s| s.add_layer(
+    //     // Most views can be configured in a chainable way
+    //     Dialog::around(TextView::new("Hello Dialog!").min_width(100))
+    //         .title("Cursive")
+    //         .button("Foo", |_s| ())
+    //         .button("Quit", |s| s.quit())
+    //         .wrap_with(CircularFocus::new)
+    //         .wrap_tab(),
+    // ));
 
     siv.add_global_callback('q', |s| s.quit());
 
@@ -167,8 +166,14 @@ fn add_url_event(siv: &mut Cursive, url: &str) {
     // do nothing for now
     let option_channel = channel_parser::fetch_channel_information(url);
     if option_channel.is_none() {
-        // TODO: show error
-        siv.pop_layer();    
+
+        siv.add_layer(Dialog::around(TextView::new("There was an error while trying to add the channel").min_width(20))
+            .title("Error Adding Channel")
+            .button("Ok", |s| {s.pop_layer();})
+            .wrap_with(CircularFocus::new)
+            .wrap_tab(),);
+
+        return;
     }
 
     let database_connection = database_handler::fetch_database_connection();

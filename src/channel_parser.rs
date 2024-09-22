@@ -9,7 +9,13 @@ use crate::data_structures::VideoEntry;
 
 pub fn fetch_channel_information(channel_url: &str) -> Option<Channel> {
     // Send a GET request to the channel URL
-    let response = reqwest::blocking::get(channel_url).unwrap();
+    let response_result = reqwest::blocking::get(channel_url);
+    if response_result.is_err() {
+        error!("There was an error while trying to fetch data from the url {}", response_result.err().unwrap());
+        return None;
+    }
+
+    let response = response_result.unwrap();
 
     // Check if the request was successful
     if !response.status().is_success() {
